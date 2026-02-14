@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/compile.js": {
+      "maxDuration": 10
+    }
+  }
+}

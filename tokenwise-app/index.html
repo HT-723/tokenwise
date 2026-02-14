@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TokenWise · 语义编译器</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <style>
+        /* 额外样式 */
+        .format-selector {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        .format-selector select {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-family: 'Inter', sans-serif;
+            margin-top: 0.3rem;
+        }
+        .calls-config {
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 1rem;
+        }
+        .calls-config input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+        }
+        .calls-config input[type="number"] {
+            width: 120px;
+            padding: 0.3rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .calls-config button {
+            width: auto;
+            margin: 0;
+            padding: 0.5rem 1rem;
+        }
+        .saving-details {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #475569;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f1f5f9;
+            border-radius: 0.5rem;
+        }
+        .stat-card {
+            transition: all 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted #666;
+            cursor: help;
+        }
+        h3 {
+            font-size: 1.1rem;
+            margin: 1.5rem 0 0.5rem 0;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ TokenWise</h1>
+            <p class="subhead">把你的需求编译成最小token指令 —— 省心、省钱、更精准</p>
+        </header>
+
+        <main>
+            <div class="input-area">
+                <label for="userInput">输入你的原始需求</label>
+                <textarea id="userInput" placeholder="例如：我想做一个App，帮助养猫的人记录喂食、驱虫和疫苗时间，要简单好用，最好有提醒功能。" rows="5"></textarea>
+                <div class="token-counter">
+                    <span>原始 token 预估: <span id="rawTokenEstimate">0</span></span>
+                </div>
+                
+                <!-- 输出格式选择器 -->
+                <div class="format-selector">
+                    <label for="outputFormat">输出格式偏好：</label>
+                    <select id="outputFormat">
+                        <option value="auto">🤖 智能自动（默认）</option>
+                        <option value="minimal">⚡ 极致精简（最少token）</option>
+                        <option value="structured">📋 结构化（键值对）</option>
+                        <option value="json">🔧 JSON（机器可读）</option>
+                    </select>
+                </div>
+                
+                <button id="compileBtn">✨ 编译为最小指令</button>
+            </div>
+
+            <div class="output-area" id="outputArea" style="display: none;">
+                <h2>编译结果</h2>
+                
+                <!-- 输入统计 -->
+                <h3>📥 输入统计</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <span class="stat-label">原始输入 token</span>
+                        <span class="stat-value" id="rawTokens">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">编译后输入 token</span>
+                        <span class="stat-value" id="compiledTokens">0</span>
+                    </div>
+                    <div class="stat-card highlight">
+                        <span class="stat-label">输入节省</span>
+                        <span class="stat-value" id="savedPercent">0%</span>
+                    </div>
+                </div>
+
+                <!-- 输出统计 -->
+                <h3>📤 输出统计（预估）</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <span class="stat-label">原始输出 token</span>
+                        <span class="stat-value" id="rawOutputTokens">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">编译后输出 token</span>
+                        <span class="stat-value" id="compiledOutputTokens">0</span>
+                    </div>
+                    <div class="stat-card highlight">
+                        <span class="stat-label">输出节省</span>
+                        <span class="stat-value" id="savedOutputPercent">0%</span>
+                    </div>
+                </div>
+
+                <!-- 原始需求和编译后指令对比 -->
+                <div class="comparison">
+                    <div class="original-box">
+                        <h3>原始需求</h3>
+                        <p id="originalText"></p>
+                    </div>
+                    <div class="compiled-box">
+                        <h3>编译后指令</h3>
+                        <p id="compiledText"></p>
+                    </div>
+                </div>
+
+                <!-- 调用次数自定义滑块+输入框 -->
+                <div class="calls-config">
+                    <label for="monthlyCallsSlider" style="font-weight: 500;">📊 月调用量：</label>
+                    <input type="range" id="monthlyCallsSlider" min="1000" max="1000000" step="1000" value="10000" style="flex: 1;">
+                    <input type="number" id="monthlyCallsInput" min="0" step="1000" value="10000">
+                    <button id="updateEstimateBtn" class="secondary">更新估算</button>
+                </div>
+
+                <div class="money-saved">
+                    💰 每月可节省 <span id="moneySaved">0</span> 元
+                    <span style="font-size: 0.9rem; color: #1e40af;">(总成本节省 <span id="totalSavedPercent">0</span>)</span>
+                    <span class="tooltip" title="基于学术研究：输入压缩20-60%，输出压缩20-60%（TokenSkip, zip2zip等）">ⓘ</span>
+                </div>
+
+                <!-- 详细节省信息 -->
+                <div class="saving-details">
+                    <span>📥 输入节省: ¥<span id="inputSaved">0</span></span>
+                    <span>📤 输出节省: ¥<span id="outputSaved">0</span></span>
+                    <span>💰 原始成本: ¥<span id="rawCost">0</span></span>
+                    <span>✨ 编译后成本: ¥<span id="compiledCost">0</span></span>
+                </div>
+
+                <button id="copyBtn" class="secondary">📋 复制编译后指令</button>
+            </div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>AI 正在编译中……</p>
+            </div>
+
+            <div class="error" id="error" style="display: none;"></div>
+        </main>
+
+        <footer>
+            <p>用自己的 API 密钥，数据安全 · 永久免费基础版 · 压缩算法基于前沿研究持续优化</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

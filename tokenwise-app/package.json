@@ -1,0 +1,11 @@
+{
+  "name": "tokenwise",
+  "version": "1.0.0",
+  "description": "语义编译器",
+  "scripts": {
+    "vercel-build": "echo 'No build required'"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.28.0"
+  }
+}
